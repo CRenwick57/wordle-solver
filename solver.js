@@ -5,7 +5,7 @@ colourResults.set("green", "g");
 colourResults.set("yellow", "y");
 colourResults.set("grey", "-");
 
-let activeColor = "white";
+let activeColour = "white";
 let activeRow = -1;
 let currentResult = ["", "", "", "", ""];
 let hardMode = false;
@@ -44,21 +44,21 @@ for (let i = 0; i < circles.length; i++) {
     }
     circle.classList.add("active-circle");
     let circleId = circle.id;
-    activeColor = circleId.slice(0, -3);
+    activeColour = circleId.slice(0, -3);
   });
 }
 
 /**
- * Outputs the activColor variable in a paragraph element
+ * Outputs the activColour variable in a paragraph element
  * Purely for debugging, should not be run once the site is finished
  */
-function displayActiveColor() {
-  let displayDiv = document.getElementById("active-color-display");
+function displayActiveColour() {
+  let displayDiv = document.getElementById("active-colour-display");
   displayDiv.innerHTML = "";
   let displayParagraph = document.createElement("p");
-  let displayText = document.createTextNode(activeColor);
+  let displayText = document.createTextNode(activeColour);
   displayParagraph.appendChild(displayText);
-  //displayParagraph.style = "color: "+activeColor;
+  //displayParagraph.style = "colour: "+activeColour;
   displayDiv.appendChild(displayParagraph);
 }
 /**
@@ -96,7 +96,7 @@ function makeRowClickable() {
     let currentRow = document.getElementById(currentRowId);
     for (let i = 0; i < 5; i++) {
       let square = currentRow.children[i];
-      square._handler = makeUpdateColorHandler(square, i);
+      square._handler = makeUpdateColourHandler(square, i);
       square.addEventListener("click", square._handler);
     }
   }
@@ -106,17 +106,17 @@ function makeRowClickable() {
  * @param {Element} square
  * @param {Number} index
  */
-function updateColor(square, index) {
+function updateColour(square, index) {
   square.classList.remove("green-square");
   square.classList.remove("yellow-square");
   square.classList.remove("grey-square");
-  square.classList.add(activeColor + "-square");
-  currentResult[index] = colourResults.get(activeColor);
+  square.classList.add(activeColour + "-square");
+  currentResult[index] = colourResults.get(activeColour);
 }
 
-function makeUpdateColorHandler(square, index) {
+function makeUpdateColourHandler(square, index) {
   return function () {
-    updateColor(square, index);
+    updateColour(square, index);
   };
 }
 
