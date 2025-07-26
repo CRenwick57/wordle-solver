@@ -120,6 +120,21 @@ function makeUpdateColourHandler(square, index) {
   };
 }
 
+function showThinkingOverlay() {
+  document.getElementById("thinkingOverlay").classList.remove("d-none");
+}
+
+function hideThinkingOverlay() {
+  document.getElementById("thinkingOverlay").classList.add("d-none");
+}
+
+function thinkThenEvaluate() {
+  if (currentResult.join("").length == 5) {
+    showThinkingOverlay();
+    setTimeout(evaluateWord, 50);
+  }
+}
+
 function evaluateWord() {
   result = currentResult.join("");
   let hardLetters = [];
@@ -131,8 +146,8 @@ function evaluateWord() {
       confetti({
         particleCount: 150,
         spread: 70,
-        origin: {y: 0.6},
-        colors: ["#6aaa64","#c9b458","#787c7e"]
+        origin: { y: 0.6 },
+        colors: ["#6aaa64", "#c9b458", "#787c7e"],
       });
     } else {
       let i = 0;
@@ -194,6 +209,7 @@ function evaluateWord() {
       } else {
         currentGuess = bestGuess(hardLetters, hardRes);
       }
+      hideThinkingOverlay();
       updateRow();
     }
   }
@@ -335,33 +351,34 @@ function updateRow() {
     activeRow++;
     printWordToRow(currentGuess);
     makeRowClickable();
+    currentResult = ['','','','',''];
   }
 }
 
-function customStart(){
-    let customStartWord = document.getElementById("customStartTxt").value;
-    if (wordList.includes(customStartWord.toUpperCase())){
-        let oldUrl = window.location.toString().split("#")[0];
-        let newUrl = oldUrl+'#'+customStartWord;
-        window.location.href = newUrl;
-        window.location.reload();
-    }
+function customStart() {
+  let customStartWord = document.getElementById("customStartTxt").value;
+  if (wordList.includes(customStartWord.toUpperCase())) {
+    let oldUrl = window.location.toString().split("#")[0];
+    let newUrl = oldUrl + "#" + customStartWord;
+    window.location.href = newUrl;
+    window.location.reload();
+  }
 }
 
-if (window.location.hash != ''){
-    let hash = window.location.hash.slice(1).toUpperCase();
-    if (hash.length == 5){
-        currentGuess = hash
-    }
+if (window.location.hash != "") {
+  let hash = window.location.hash.slice(1).toUpperCase();
+  if (hash.length == 5) {
+    currentGuess = hash;
+  }
 }
 
 updateRow();
 
 let submitButton = document.getElementById("submitBtn");
-submitButton.addEventListener("click", evaluateWord);
+submitButton.addEventListener("click", thinkThenEvaluate);
 let hardModeToggle = document.getElementById("hardModeToggle");
 hardModeToggle.addEventListener("change", function () {
   hardMode = !hardMode;
 });
 let customStartButton = document.getElementById("customStartBtn");
-customStartButton.addEventListener("click", customStart)
+customStartButton.addEventListener("click", customStart);
