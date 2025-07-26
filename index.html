@@ -9,7 +9,7 @@
     <script>        
     window.onload = () => {
         currentURL = window.location.href;
-        newUrl = currentURL.replace("index","solver");
+        newUrl = currentURL.split("index")[0]+"solver.html"
         location.replace(newUrl);
     };
     </script>
