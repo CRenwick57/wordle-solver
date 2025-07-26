@@ -338,4 +338,6 @@ updateRow();
 let submitButton = document.getElementById("submitBtn");
 submitButton.addEventListener("click", evaluateWord);
 let hardModeToggle = document.getElementById("hardModeToggle");
-hardModeToggle.addEventListener("change", function(){hardMode = !hardMode})
+hardModeToggle.addEventListener("change", function () {
+  hardMode = !hardMode;
+});

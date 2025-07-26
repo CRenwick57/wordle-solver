@@ -11,8 +11,10 @@
     <style>
         
     .square {
-      width: 60px;
-      height: 60px;
+      width: 14vw;
+      height: 14vw;
+      max-width: 60px;
+      max-height: 60px;
       border: 2px solid #ccc;
       display: flex;
       justify-content: center;
@@ -81,7 +83,7 @@
     </style>
 </head>
 <body>
-    
+  <div class="container-fluid px-3">
   <div class="container d-flex flex-column justify-content-center align-items-center wordle-container" id="wordleGrid">
     <!-- Wordle Grid -->
     <div class="mb-4">
@@ -119,6 +121,7 @@
             <input class="form-check-input" type="checkbox" role="switch" id="hardModeToggle">
             <label class="form-check-label" for="hardModeToggle">Hard mode?</label>
         </div>
+    </div>
     </div>
     <!--
     <div id="active-color-display"></div>
