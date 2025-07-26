@@ -128,6 +128,12 @@ function evaluateWord() {
     if (result == "ggggg") {
       alert("SOLVED!");
       solved = true;
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: {y: 0.6},
+        colors: ["#6aaa64","#c9b458","#787c7e"]
+      });
     } else {
       let i = 0;
       while (i < answerList.length) {
