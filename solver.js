@@ -44,7 +44,6 @@ for (let i = 0; i < circles.length; i++) {
     }
     circle.classList.add("active-circle");
     let circleId = circle.id;
-    console.log(circleId);
     activeColor = circleId.slice(0, -3);
   });
 }
