@@ -1,2 +1,2 @@
-# Wordle-solver
+# wordle-solver
 An html web app that lets players solve Wordle
