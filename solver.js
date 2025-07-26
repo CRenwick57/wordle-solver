@@ -1,0 +1,341 @@
+let circles = document.getElementsByClassName("circle");
+let colourResults = new Map();
+colourResults.set("white", "");
+colourResults.set("green", "g");
+colourResults.set("yellow", "y");
+colourResults.set("grey", "-");
+
+let activeColor = "white";
+let activeRow = -1;
+let currentResult = ["", "", "", "", ""];
+let hardMode = false;
+let currentGuess = "ARISE";
+let solved = false;
+//Read the data files and populate lists for use in the solver;
+let wordList = [];
+let answerList = [];
+let resultsList = [];
+
+fetch("wordle_guesses.txt")
+  .then((response) => response.text())
+  .then((data) => {
+    wordList = data.split(" ").map((word) => word.toUpperCase());
+  });
+
+fetch("wordle_answers.txt")
+  .then((response) => response.text())
+  .then((data) => {
+    answerList = data.split(" ").map((word) => word.toUpperCase());
+    wordList.push(...answerList);
+  });
+
+fetch("wordle_results.txt")
+  .then((response) => response.text())
+  .then((data) => {
+    resultsList = data.split(" ");
+  });
+
+//Add an on-click function to each of the colour circles to make them the active colour
+for (let i = 0; i < circles.length; i++) {
+  let circle = circles[i];
+  circle.addEventListener("click", function () {
+    for (const ccl of circles) {
+      ccl.classList.remove("active-circle");
+    }
+    circle.classList.add("active-circle");
+    let circleId = circle.id;
+    console.log(circleId);
+    activeColor = circleId.slice(0, -3);
+  });
+}
+
+/**
+ * Outputs the activColor variable in a paragraph element
+ * Purely for debugging, should not be run once the site is finished
+ */
+function displayActiveColor() {
+  let displayDiv = document.getElementById("active-color-display");
+  displayDiv.innerHTML = "";
+  let displayParagraph = document.createElement("p");
+  let displayText = document.createTextNode(activeColor);
+  displayParagraph.appendChild(displayText);
+  //displayParagraph.style = "color: "+activeColor;
+  displayDiv.appendChild(displayParagraph);
+}
+/**
+ * Takes a word as input and displays it, one letter at a time, on the current row
+ * The current row is defined by the activeRow variable
+ * @param {string} word
+ */
+function printWordToRow(word) {
+  let rowId = "row" + String(activeRow);
+
+  let rowToWriteTo = document.getElementById(rowId);
+
+  for (let i = 0; i < 5; i++) {
+    setTimeout(function () {
+      let square = rowToWriteTo.children[i];
+      square.innerText = word[i];
+      square.classList.add("letter-reveal");
+    }, 300 * (i + 1));
+  }
+}
+
+function makeRowClickable() {
+  if (activeRow > 0) {
+    let lastRowId = "row" + String(activeRow - 1);
+    let lastRow = document.getElementById(lastRowId);
+    for (let i = 0; i < 5; i++) {
+      let square = lastRow.children[i];
+      square.removeEventListener("click", square._handler);
+      delete square._handler;
+    }
+    hardModeToggle.disabled = true;
+  }
+  if (solved == false) {
+    let currentRowId = "row" + String(activeRow);
+    let currentRow = document.getElementById(currentRowId);
+    for (let i = 0; i < 5; i++) {
+      let square = currentRow.children[i];
+      square._handler = makeUpdateColorHandler(square, i);
+      square.addEventListener("click", square._handler);
+    }
+  }
+}
+/**
+ * Update the colour of the clicked square
+ * @param {Element} square
+ * @param {Number} index
+ */
+function updateColor(square, index) {
+  square.classList.remove("green-square");
+  square.classList.remove("yellow-square");
+  square.classList.remove("grey-square");
+  square.classList.add(activeColor + "-square");
+  currentResult[index] = colourResults.get(activeColor);
+}
+
+function makeUpdateColorHandler(square, index) {
+  return function () {
+    updateColor(square, index);
+  };
+}
+
+function evaluateWord() {
+  result = currentResult.join("");
+  let hardLetters = [];
+  let hardRes = "-----";
+  if (result.length == 5) {
+    if (result == "ggggg") {
+      alert("SOLVED!");
+      solved = true;
+    } else {
+      let i = 0;
+      while (i < answerList.length) {
+        let target = answerList[i];
+        let loopResult = compareWords(currentGuess, target);
+        if (loopResult != result) {
+          answerList.splice(i, 1);
+        } else {
+          i++;
+        }
+      }
+      if (hardMode == true) {
+        hardLetters = [];
+        for (let i = 0; i < 5; i++) {
+          if (result[i] == "g" || result[i] == "y") {
+            hardLetters.push(currentGuess[i]);
+            if (result[i] == "g") {
+              hardRes =
+                hardRes.slice(0, i) + currentGuess[i] + hardRes.slice(i + 1);
+            }
+          }
+        }
+        let j = 0;
+        while (j < wordList.length) {
+          let w = wordList[j];
+          let valid = true;
+          for (let i = 0; i < 5; i++) {
+            if (result[i] == "g") {
+              if (w[i] != currentGuess[i]) {
+                valid = false;
+                break;
+              } else if (
+                countCharInWord(w, currentGuess[i]) <
+                countCharInArray(hardLetters, currentGuess[i])
+              ) {
+                valid = false;
+                break;
+              }
+            } else if (result[i] == "y") {
+              if (
+                countCharInWord(w, currentGuess[i]) <
+                countCharInArray(hardLetters, currentGuess[i])
+              ) {
+                valid = false;
+                break;
+              }
+            }
+          }
+          if (valid == true) {
+            j++;
+          } else {
+            wordList.splice(j, 1);
+          }
+        }
+      }
+      if (answerList.length == 1) {
+        currentGuess = answerList[0];
+      } else {
+        currentGuess = bestGuess(hardLetters, hardRes);
+      }
+      updateRow();
+    }
+  }
+}
+
+/**
+ * Function to count how many times a char c occurs in a word
+ * @param {string} word
+ * @param {char} c
+ */
+function countCharInWord(word, c) {
+  let count = 0;
+  for (let i = 0; i < word.length; i++) {
+    if (word[i] == c) {
+      count++;
+    }
+  }
+  return count;
+}
+/**
+ *
+ * @param {char[]} arr
+ * @param {char} c
+ */
+function countCharInArray(arr, c) {
+  let count = 0;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] == c) {
+      count++;
+    }
+  }
+  return count;
+}
+
+/**
+ * Function that compares all possible guesses to all possible answers to find the best one
+ * The parameters will be blank outside of hard mode and are only used in hard mode
+ * @param {char[]} hardLetters
+ * @param {string} hardResult
+ */
+function bestGuess(hardLetters, hardResult) {
+  let minimax = Number.MAX_VALUE;
+  let bestGuesses = [];
+  for (const word of wordList) {
+    let valid = true;
+    if (hardMode == true) {
+      for (let i = 0; i < 5; i++) {
+        let l = word[i];
+        if (hardResult[i] != "-" && hardResult[i] != l) {
+          valid = false;
+          break;
+        }
+        if (countCharInArray(hardLetters, l) > countCharInWord(word, l)) {
+          valid = false;
+          break;
+        }
+      }
+    }
+    if (valid == false) {
+      continue;
+    }
+    let maxScore = 0;
+    let scoreMap = new Map();
+    for (const res of resultsList) {
+      scoreMap.set(res, 0);
+    }
+    for (const a of answerList) {
+      let result = compareWords(word, a);
+      scoreMap.set(result, scoreMap.get(result) + 1);
+      if (scoreMap.get(result) > maxScore) {
+        maxScore = scoreMap.get(result);
+      }
+    }
+    if (maxScore < minimax) {
+      minimax = maxScore;
+      bestGuesses = [word];
+    } else if (maxScore == minimax) {
+      bestGuesses.push(word);
+    }
+  }
+  let guess = bestGuesses[0];
+  for (const option in bestGuesses) {
+    if (answerList.includes(option)) {
+      guess = option;
+      break;
+    }
+  }
+  return guess;
+}
+
+/**
+ *
+ * @param {string} guess
+ * @param {string} target
+ */
+function compareWords(guess, target) {
+  let result = "";
+  let letterCounts = new Map();
+  for (const c of target) {
+    if (letterCounts.has(c)) {
+      letterCounts.set(c, letterCounts.get(c) + 1);
+    } else {
+      letterCounts.set(c, 1);
+    }
+  }
+
+  for (i = 0; i < 5; i++) {
+    let c = guess[i];
+    if (c == target[i]) {
+      result += "g";
+      letterCounts.set(c, letterCounts.get(c) - 1);
+    } else if (
+      target.includes(c) &&
+      letterCounts.has(c) &&
+      letterCounts.get(c) > 0
+    ) {
+      let isYellow = false;
+      for (j = 0; j < 5; j++) {
+        if (target[j] == c && guess[j] != target[j]) {
+          isYellow = true;
+          break;
+        }
+      }
+      if (isYellow == true) {
+        result += "y";
+        letterCounts.set(c, letterCounts.get(c) - 1);
+      } else {
+        result += "-";
+      }
+    } else {
+      result += "-";
+    }
+  }
+  return result;
+}
+
+function updateRow() {
+  if (activeRow < 5) {
+    activeRow++;
+    printWordToRow(currentGuess);
+    makeRowClickable();
+  }
+}
+
+updateRow();
+
+let submitButton = document.getElementById("submitBtn");
+submitButton.addEventListener("click", evaluateWord);
+let hardModeToggle = document.getElementById("hardModeToggle");
+hardModeToggle.addEventListener("change", function(){hardMode = !hardMode})
