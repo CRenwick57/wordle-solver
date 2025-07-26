@@ -9,7 +9,7 @@ let activeColor = "white";
 let activeRow = -1;
 let currentResult = ["", "", "", "", ""];
 let hardMode = false;
-let currentGuess = "ARISE";
+let currentGuess = "CRANE";
 let solved = false;
 //Read the data files and populate lists for use in the solver;
 let wordList = [];
@@ -333,6 +333,23 @@ function updateRow() {
   }
 }
 
+function customStart(){
+    let customStartWord = document.getElementById("customStartTxt").value;
+    if (wordList.includes(customStartWord.toUpperCase())){
+        let oldUrl = window.location.toString().split("#")[0];
+        let newUrl = oldUrl+'#'+customStartWord;
+        window.location.href = newUrl;
+        window.location.reload();
+    }
+}
+
+if (window.location.hash != ''){
+    let hash = window.location.hash.slice(1).toUpperCase();
+    if (hash.length == 5){
+        currentGuess = hash
+    }
+}
+
 updateRow();
 
 let submitButton = document.getElementById("submitBtn");
@@ -341,3 +358,5 @@ let hardModeToggle = document.getElementById("hardModeToggle");
 hardModeToggle.addEventListener("change", function () {
   hardMode = !hardMode;
 });
+let customStartButton = document.getElementById("customStartBtn");
+customStartButton.addEventListener("click", customStart)
