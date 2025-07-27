@@ -304,7 +304,7 @@ function bestGuess(hardLetters, hardResult) {
     }
   }
   let guess = bestGuesses[0];
-  for (const option in bestGuesses) {
+  for (const option of bestGuesses) {
     if (answerList.includes(option)) {
       guess = option;
       break;
