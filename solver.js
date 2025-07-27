@@ -13,6 +13,7 @@ let currentGuess = "CRANE";
 let solved = false;
 //Read the data files and populate lists for use in the solver;
 let wordList = [];
+let untouchedWordList = []; //a version of the wordList that never gets deleted from, to make the custom start more consistent
 let answerList = [];
 let resultsList = [];
 
@@ -27,6 +28,7 @@ fetch("wordle_answers.txt")
   .then((data) => {
     answerList = data.split(" ").map((word) => word.toUpperCase());
     wordList.push(...answerList);
+    untouchedWordList.push(...wordList);
   });
 
 fetch("wordle_results.txt")
@@ -142,7 +144,6 @@ function evaluateWord() {
   if (result.length == 5) {
     if (result == "ggggg") {
       hideThinkingOverlay();
-      alert("SOLVED!");
       solved = true;
       confetti({
         particleCount: 150,
@@ -207,11 +208,22 @@ function evaluateWord() {
       }
       if (answerList.length == 1) {
         currentGuess = answerList[0];
+        hideThinkingOverlay();
+        updateRow();
+      } else if (answerList.length == 0) {
+        solved = true;
+        alert(
+          "I can't find a solution. Either you've made a mistake somewhere, or something's wrong with my code..."
+        );
+        submitButton.removeEventListener("click",thinkThenEvaluate);
+        submitButton.addEventListener("click",function(){window.location.reload();})
+        submitButton.innerText="Reload page";
+        hideThinkingOverlay();
       } else {
         currentGuess = bestGuess(hardLetters, hardRes);
+        hideThinkingOverlay();
+        updateRow();
       }
-      hideThinkingOverlay();
-      updateRow();
     }
   }
 }
@@ -358,7 +370,7 @@ function updateRow() {
 
 function customStart() {
   let customStartWord = document.getElementById("customStartTxt").value;
-  if (wordList.includes(customStartWord.toUpperCase())) {
+  if (untouchedWordList.includes(customStartWord.toUpperCase())) {
     let oldUrl = window.location.toString().split("#")[0];
     let newUrl = oldUrl + "#" + customStartWord;
     window.location.href = newUrl;
