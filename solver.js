@@ -141,6 +141,7 @@ function evaluateWord() {
   let hardRes = "-----";
   if (result.length == 5) {
     if (result == "ggggg") {
+      hideThinkingOverlay();
       alert("SOLVED!");
       solved = true;
       confetti({
@@ -351,7 +352,7 @@ function updateRow() {
     activeRow++;
     printWordToRow(currentGuess);
     makeRowClickable();
-    currentResult = ['','','','',''];
+    currentResult = ["", "", "", "", ""];
   }
 }
 
