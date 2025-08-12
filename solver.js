@@ -378,6 +378,20 @@ function customStart() {
   }
 }
 
+function saveHardModeToStorage(){
+  localStorage.setItem("hardMode", JSON.stringify(hardMode));
+}
+
+function loadHardModeFromStorage(){
+  storedHardMode = localStorage.getItem("hardMode");
+  hardMode = JSON.parse(storedHardMode);
+}
+
+function updateHardMode() {
+  hardMode = !hardMode
+  saveHardModeToStorage();
+}
+
 if (window.location.hash != "") {
   let hash = window.location.hash.slice(1).toUpperCase();
   if (hash.length == 5) {
@@ -390,8 +404,10 @@ updateRow();
 let submitButton = document.getElementById("submitBtn");
 submitButton.addEventListener("click", thinkThenEvaluate);
 let hardModeToggle = document.getElementById("hardModeToggle");
-hardModeToggle.addEventListener("change", function () {
-  hardMode = !hardMode;
-});
+hardModeToggle.addEventListener("change", updateHardMode);
+loadHardModeFromStorage();
+if (hardMode){
+  hardModeToggle.checked = true;
+}
 let customStartButton = document.getElementById("customStartBtn");
 customStartButton.addEventListener("click", customStart);
