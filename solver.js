@@ -17,26 +17,18 @@ let untouchedWordList = []; //a version of the wordList that never gets deleted 
 let answerList = [];
 let resultsList = [];
 
-fetch("wordle_guesses.txt")
-  .then((response) => response.text())
-  .then((data) => {
-    wordList = data.split(" ").map((word) => word.toUpperCase());
-  });
+async function loadData() {
+  const guesses = await fetch("wordle_guesses.txt").then(res => res.text());
+  wordList = guesses.split(" ").map(w => w.toUpperCase());
 
-fetch("wordle_answers.txt")
-  .then((response) => response.text())
-  .then((data) => {
-    answerList = data.split(" ").map((word) => word.toUpperCase());
-    wordList.push(...answerList);
-    untouchedWordList.push(...wordList);
-  });
+  const answers = await fetch("wordle_answers.txt").then(res => res.text());
+  answerList = answers.split(" ").map(w => w.toUpperCase());
+  wordList.push(...answerList);
+  untouchedWordList.push(...wordList);
 
-fetch("wordle_results.txt")
-  .then((response) => response.text())
-  .then((data) => {
-    resultsList = data.split(" ");
-  });
-
+  const results = await fetch("wordle_results.txt").then(res => res.text());
+  resultsList = results.split(" ");
+}
 //Add an on-click function to each of the colour circles to make them the active colour
 for (let i = 0; i < circles.length; i++) {
   let circle = circles[i];
@@ -215,9 +207,11 @@ function evaluateWord() {
         alert(
           "I can't find a solution. Either you've made a mistake somewhere, or something's wrong with my code..."
         );
-        submitButton.removeEventListener("click",thinkThenEvaluate);
-        submitButton.addEventListener("click",function(){window.location.reload();})
-        submitButton.innerText="Reload page";
+        submitButton.removeEventListener("click", thinkThenEvaluate);
+        submitButton.addEventListener("click", function () {
+          window.location.reload();
+        });
+        submitButton.innerText = "Reload page";
         hideThinkingOverlay();
       } else {
         currentGuess = bestGuess(hardLetters, hardRes);
@@ -378,36 +372,58 @@ function customStart() {
   }
 }
 
-function saveHardModeToStorage(){
+function randomStart() {
+  let oldUrl = window.location.toString().split("#")[0];
+  let newUrl = oldUrl + "#random";
+  window.location.href = newUrl;
+  window.location.reload();
+}
+
+function saveHardModeToStorage() {
   localStorage.setItem("hardMode", JSON.stringify(hardMode));
 }
 
-function loadHardModeFromStorage(){
+function loadHardModeFromStorage() {
   storedHardMode = localStorage.getItem("hardMode");
   hardMode = JSON.parse(storedHardMode);
 }
 
 function updateHardMode() {
-  hardMode = !hardMode
+  hardMode = !hardMode;
   saveHardModeToStorage();
 }
-
-if (window.location.hash != "") {
-  let hash = window.location.hash.slice(1).toUpperCase();
-  if (hash.length == 5) {
-    currentGuess = hash;
+async function startGame() {
+  if (untouchedWordList.length == 0) {
+    await loadData();
   }
+  if (window.location.hash != "") {
+    let hash = window.location.hash.slice(1).toUpperCase();
+    console.log(hash);
+    if (hash.length == 5) {
+      currentGuess = hash;
+    } else if (hash == "RANDOM") {
+      let randNo = Math.random();
+      let randIndex = Math.floor(randNo * untouchedWordList.length);
+      let randWord = untouchedWordList[randIndex];
+      console.log(randWord);
+      currentGuess = randWord;
+    }
+  }
+
+  updateRow();
 }
 
-updateRow();
+startGame()
 
 let submitButton = document.getElementById("submitBtn");
 submitButton.addEventListener("click", thinkThenEvaluate);
 let hardModeToggle = document.getElementById("hardModeToggle");
 hardModeToggle.addEventListener("change", updateHardMode);
 loadHardModeFromStorage();
-if (hardMode){
+if (hardMode) {
   hardModeToggle.checked = true;
 }
 let customStartButton = document.getElementById("customStartBtn");
 customStartButton.addEventListener("click", customStart);
+let randomStartButton = document.getElementById("randomStartBtn");
+randomStartButton.addEventListener("click", randomStart);
