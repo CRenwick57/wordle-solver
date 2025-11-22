@@ -9,7 +9,7 @@ let activeColour = "white";
 let activeRow = -1;
 let currentResult = ["", "", "", "", ""];
 let hardMode = false;
-let currentGuess = "CRANE";
+let currentGuess = "ARISE";
 let solved = false;
 //Read the data files and populate lists for use in the solver;
 let wordList = [];
@@ -259,6 +259,7 @@ function countCharInArray(arr, c) {
  */
 function bestGuess(hardLetters, hardResult) {
   let minimax = Number.MAX_VALUE;
+  let maxGroups = 0;
   let bestGuesses = [];
   for (const word of wordList) {
     let valid = true;
@@ -279,6 +280,7 @@ function bestGuess(hardLetters, hardResult) {
       continue;
     }
     let maxScore = 0;
+    let groups = 0;
     let scoreMap = new Map();
     for (const res of resultsList) {
       scoreMap.set(res, 0);
@@ -290,13 +292,21 @@ function bestGuess(hardLetters, hardResult) {
         maxScore = scoreMap.get(result);
       }
     }
+    groups = scoreMap.keys().length;
     if (maxScore < minimax) {
       minimax = maxScore;
       bestGuesses = [word];
+      maxGroups = groups;
     } else if (maxScore == minimax) {
-      bestGuesses.push(word);
+      if (groups > maxGroups){
+        bestGuesses = [word];
+        maxGroups = groups;
+      } else if (groups == maxGroups){
+        bestGuesses.push(word);
+      }
     }
   }
+  console.table(bestGuesses);
   let guess = bestGuesses[0];
   for (const option of bestGuesses) {
     if (answerList.includes(option)) {
